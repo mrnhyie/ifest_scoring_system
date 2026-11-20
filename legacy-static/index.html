@@ -1,0 +1,1925 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F5EC">
+<meta name="color-scheme" content="light">
+<title>Scoreboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FCFBF5'/%3E%3Crect x='3' y='7' width='12' height='16' rx='4' fill='%232B2A78'/%3E%3Crect x='6' y='11' width='6' height='2.4' rx='1.2' fill='%2333D6A3'/%3E%3Crect x='17' y='7' width='12' height='16' rx='4' fill='%2333D6A3'/%3E%3Crect x='20' y='11' width='6' height='2.4' rx='1.2' fill='%232B2A78'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F5EC;
+    --shell:#FCFBF5;
+    --ink:#22215C;
+    --muted:#6E6D85;
+    --line:#E9E7DC;
+    --teal:#33D6A3;
+    --teal-deep:#0F8E74;
+    --teal-soft:#DFF4EA;
+    --blue:#6E6DB8;
+    --blue-deep:#3B3A9E;
+    --blue-soft:#E4E5F5;
+    --orange:#2B2A78;
+    --orange-deep:#1F1E5E;
+    --purple:#2B2A78;
+    --yellow:#FFE08A;
+    --font:"Poppins",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{height:100%}
+  body{
+    margin:0;
+    min-height:100dvh;
+    padding:clamp(10px,2.2vw,24px);
+    background:
+      radial-gradient(55vw 55vw at -8% 108%, #D3EFD9 0%, transparent 62%),
+      radial-gradient(48vw 48vw at 106% -6%, #DCE5F4 0%, transparent 58%),
+      radial-gradient(42vw 42vw at 52% 122%, #FBEFC9 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    display:flex;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  button{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--purple);outline-offset:2px}
+
+  .app{
+    width:100%;
+    max-width:1200px;
+    height:calc(100dvh - clamp(20px,4.4vw,48px));
+    min-height:520px;
+    margin:auto;
+    background:var(--shell);
+    border-radius:clamp(24px,3vw,38px);
+    box-shadow:0 30px 70px rgba(34,33,92,.16);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+
+  /* ── Header ─────────────────────────────────────── */
+  .app-header{
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+    align-items:center;
+    gap:12px;
+    padding:20px clamp(18px,3vw,30px) 10px;
+  }
+  .app-title{
+    margin:0;
+    font-size:19px;
+    font-weight:600;
+    letter-spacing:-.01em;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .header-slot{display:flex;align-items:center;gap:8px;min-width:0}
+  .header-slot.end{justify-content:flex-end}
+  .icon-btn{
+    width:42px;height:42px;
+    flex:none;
+    border:0;
+    border-radius:50%;
+    background:#F0EFE3;
+    color:var(--ink);
+    display:grid;
+    place-items:center;
+    cursor:pointer;
+    transition:background .15s,opacity .15s;
+  }
+  .icon-btn:hover{background:#E6E4D4}
+  .icon-btn:disabled{opacity:.3;cursor:default}
+  .icon-btn:disabled:hover{background:#F0EFE3}
+  .icon-btn svg{width:20px;height:20px}
+  .end-btn{
+    height:38px;
+    padding:0 18px;
+    border:0;
+    border-radius:999px;
+    background:#F0EFE3;
+    color:var(--ink);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  .end-btn:hover{background:#E6E4D4}
+  .viewer-link{text-decoration:none;color:var(--ink)}
+  .viewer-link:hover{background:#E6E4D4}
+
+  /* ── Status pill ────────────────────────────────── */
+  .status-row{flex:0 0 auto;display:flex;justify-content:center;padding:6px 16px 18px}
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    height:38px;
+    padding:0 18px;
+    border-radius:999px;
+    background:var(--teal);
+    color:var(--ink);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    box-shadow:0 8px 18px rgba(51,214,163,.26);
+    white-space:nowrap;
+  }
+  .status-dot{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:currentColor;
+    opacity:.85;
+    flex:none;
+  }
+  .status-pill.is-live{background:var(--ink);color:#fff;box-shadow:0 8px 18px rgba(34,33,92,.22)}
+  .status-pill.is-live .status-dot{background:var(--teal);opacity:1}
+  .status-pill.is-live .status-dot{animation:dotPulse 1.5s ease-in-out infinite}
+  @keyframes dotPulse{50%{opacity:.25;transform:scale(.75)}}
+
+  /* ── Layout ─────────────────────────────────────── */
+  main{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    padding:0 clamp(14px,2.8vw,30px) clamp(14px,2.2vw,24px);
+  }
+
+  /* ── Setup ──────────────────────────────────────── */
+  .setup{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    display:flex;
+    justify-content:center;
+  }
+  .setup-inner{
+    width:min(560px,100%);
+    margin:auto;
+    padding:6px 0 8px;
+    display:flex;
+    flex-direction:column;
+  }
+  .duo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:6px;
+  }
+  .duo-avatar{
+    width:84px;height:84px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .duo-avatar:hover{transform:translateY(-2px)}
+  .duo-a{background:var(--teal-soft);margin-right:-8px;box-shadow:0 0 0 4px var(--shell)}
+  .duo-b{background:var(--blue-soft);margin-left:-8px;box-shadow:0 0 0 4px var(--shell)}
+  .duo-avatar .initials{font-size:19px;color:rgba(34,33,92,.5)}
+  .duo-hint{
+    margin:0 0 16px;
+    text-align:center;
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:.02em;
+    color:var(--muted);
+  }
+  .vs-badge{
+    width:30px;height:30px;
+    border-radius:50%;
+    background:var(--ink);
+    color:var(--teal);
+    font-size:10px;
+    font-weight:700;
+    display:grid;
+    place-items:center;
+    z-index:2;
+    box-shadow:0 4px 10px rgba(34,33,92,.3);
+    border:3px solid var(--shell);
+    box-sizing:content-box;
+    margin:0 -4px;
+  }
+  .setup-title{
+    margin:0 0 8px;
+    font-size:clamp(29px,4.2vw,38px);
+    font-weight:700;
+    letter-spacing:-.03em;
+    line-height:1.1;
+    text-align:center;
+  }
+  .setup-sub{
+    margin:0 0 26px;
+    font-size:14px;
+    line-height:1.5;
+    color:var(--muted);
+    text-align:center;
+  }
+  .name-fields{display:grid;gap:12px}
+  .name-field{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    height:88px;
+    padding:0 20px;
+    border-radius:22px;
+    border:1px solid transparent;
+    cursor:text;
+    transition:box-shadow .15s,border-color .15s;
+  }
+  .field-a{background:var(--teal-soft)}
+  .field-b{background:var(--blue-soft)}
+  .field-a:focus-within{border-color:var(--teal);box-shadow:0 0 0 4px rgba(51,214,163,.25)}
+  .field-b:focus-within{border-color:var(--blue);box-shadow:0 0 0 4px rgba(110,109,184,.22)}
+  .field-tag{
+    width:40px;height:40px;
+    flex:none;
+    border-radius:14px;
+    background:#fff;
+    display:grid;
+    place-items:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--teal-deep);
+    box-shadow:0 3px 8px rgba(34,33,92,.1);
+  }
+  .field-b .field-tag{color:var(--blue-deep)}
+  .field-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .field-label{
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:rgba(34,33,92,.45);
+  }
+  .name-field input{
+    width:100%;
+    border:0;
+    background:transparent;
+    outline:0;
+    padding:0;
+    font-family:var(--font);
+    font-size:20px;
+    font-weight:600;
+    line-height:1.2;
+    color:var(--ink);
+    caret-color:var(--teal-deep);
+  }
+  .field-b input{caret-color:var(--blue-deep)}
+  .name-field input::placeholder{color:#9B99AC;font-weight:500}
+  .start-btn{
+    margin-top:18px;
+    height:62px;
+    border:0;
+    border-radius:999px;
+    background:var(--orange);
+    color:#fff;
+    font-family:var(--font);
+    font-size:16px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    cursor:pointer;
+    box-shadow:0 12px 26px rgba(34,33,92,.26);
+    transition:background .12s,box-shadow .12s,transform .1s;
+  }
+  .start-btn:hover{background:var(--orange-deep);box-shadow:0 14px 30px rgba(34,33,92,.34)}
+  .start-btn:active{transform:scale(.992)}
+  .start-btn svg{
+    width:30px;height:30px;
+    padding:7px;
+    box-sizing:border-box;
+    border-radius:50%;
+    background:var(--teal);
+    color:var(--ink);
+    transition:transform .15s;
+  }
+  .start-btn:hover svg{transform:translateX(3px)}
+  .key-hint{
+    margin:12px 0 0;
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .key-hint kbd{
+    font-family:var(--font);
+    font-size:10px;
+    font-weight:600;
+    padding:2px 6px;
+    border:1px solid var(--line);
+    border-bottom-width:2px;
+    border-radius:6px;
+    color:#6B6A80;
+    background:#F3F2E7;
+  }
+
+  .history{
+    margin-top:30px;
+    padding:16px 20px 6px;
+    background:#F3F2E7;
+    border-radius:22px;
+  }
+  .history-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .history-head h3{
+    margin:0;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .history-count{font-size:11px;font-weight:500;color:#A5A3B2;white-space:nowrap}
+  #pastList{list-style:none;margin:6px 0 0;padding:0}
+  #pastList li{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:12px;
+    align-items:center;
+    padding:11px 0;
+    border-top:1px solid #E5E3D4;
+  }
+  #pastList li:first-child{border-top:0}
+  .h-no{
+    font-size:10px;
+    font-weight:600;
+    color:var(--muted);
+    letter-spacing:.04em;
+    background:#fff;
+    border-radius:999px;
+    padding:3px 8px;
+    white-space:nowrap;
+  }
+  .h-line{
+    font-size:14px;
+    font-weight:500;
+    color:var(--muted);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .h-line b{font-weight:700}
+  .h-line .win{color:var(--ink);font-weight:700}
+  .h-line .lose{color:var(--muted);font-weight:500}
+  .h-line .dash{color:#BFBDAC;margin:0 2px}
+  .h-date{font-size:11px;color:#A5A3B2;white-space:nowrap}
+
+  /* ── Arena ──────────────────────────────────────── */
+  .arena{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:clamp(12px,1.6vw,20px);
+    padding-top:2px;
+  }
+  .player-card{
+    position:relative;
+    isolation:isolate;
+    overflow:hidden;
+    min-width:0;
+    min-height:0;
+    padding:clamp(18px,2.4vw,28px);
+    border-radius:clamp(24px,3vw,32px);
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 18px 40px rgba(77,42,95,.10);
+  }
+  .card-a{background:#C9F0E1}
+  .card-b{background:#DEE0F4}
+  .ghost{
+    position:absolute;
+    top:-20px;
+    right:14px;
+    z-index:0;
+    font-size:clamp(110px,14vw,190px);
+    font-weight:800;
+    line-height:1;
+    letter-spacing:-.06em;
+    color:var(--ink);
+    opacity:.1;
+    pointer-events:none;
+    user-select:none;
+  }
+  .card-body{
+    position:relative;
+    z-index:1;
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    gap:clamp(8px,1.6vw,20px);
+    padding:6px 0;
+  }
+  .avatar{
+    flex:0 1 auto;
+    width:clamp(108px,17vw,248px);
+    aspect-ratio:1;
+    position:relative;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:#fff;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow:0 0 0 5px rgba(255,255,255,.5), 0 16px 30px rgba(34,33,92,.14);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .card-b .avatar{background:#FAFAFF}
+  .avatar:hover{transform:translateY(-2px)}
+  .avatar:disabled{cursor:default;transform:none}
+  .avatar .initials{font-size:clamp(30px,4.6vw,64px)}
+  .avatar-shot{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    border-radius:inherit;
+  }
+  .avatar-shot img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .avatar-shot .initials{
+    font-weight:700;
+    line-height:1;
+    letter-spacing:-.02em;
+    color:rgba(34,33,92,.42);
+  }
+  .cam{
+    position:absolute;
+    right:16%;
+    bottom:16%;
+    z-index:2;
+    width:26%;
+    aspect-ratio:1;
+    border-radius:50%;
+    background:var(--shell);
+    color:rgba(34,33,92,.72);
+    display:grid;
+    place-items:center;
+    box-shadow:0 2px 6px rgba(34,33,92,.2);
+    pointer-events:none;
+  }
+  .cam svg{width:56%;height:56%}
+  .info{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .name-slot{position:relative;display:grid;max-width:100%;min-width:0}
+  .name-slot > *{grid-area:1 / 1;min-width:0}
+  .player-name{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    max-width:100%;
+    margin:0;
+    padding:0;
+    border:0;
+    background:transparent;
+    font-family:var(--font);
+    font-weight:700;
+    font-size:clamp(19px,2.2vw,30px);
+    line-height:1.2;
+    letter-spacing:-.015em;
+    color:var(--ink);
+    text-align:left;
+    cursor:text;
+  }
+  .name-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player-name .pen{
+    width:13px;height:13px;
+    flex:none;
+    box-sizing:content-box;
+    padding:5px;
+    border-radius:50%;
+    background:rgba(255,255,255,.6);
+    color:rgba(46,43,58,.75);
+    transition:background .12s;
+  }
+  .player-name:hover .pen{background:#fff}
+  .name-edit{
+    width:100%;
+    height:1.5em;
+    padding:0 7px;
+    border:0;
+    border-radius:9px;
+    background:#fff;
+    color:var(--ink);
+    font-family:var(--font);
+    font-weight:700;
+    font-size:clamp(19px,2.2vw,30px);
+    line-height:1.2;
+    outline:2px solid rgba(255,255,255,.7);
+  }
+  .pts{
+    margin:8px 0 0;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:rgba(34,33,92,.55);
+  }
+  .score{
+    --base:clamp(76px,10vw,150px);
+    font-size:calc(var(--base) * var(--fit,1));
+    font-weight:300;
+    line-height:.95;
+    letter-spacing:-.05em;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    transform-origin:left center;
+    margin-left:-4px;
+    white-space:nowrap;
+  }
+  .score.pop{animation:pop .24s cubic-bezier(.2,.8,.3,1)}
+  @keyframes pop{
+    0%{transform:scale(1)}
+    32%{transform:scale(1.06)}
+    100%{transform:scale(1)}
+  }
+  .controls{
+    position:relative;
+    z-index:1;
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:.85fr 1.15fr 1fr 1fr;
+    gap:5px;
+    padding:6px;
+    border-radius:999px;
+    background:#fff;
+    box-shadow:0 10px 22px rgba(34,33,92,.12);
+  }
+  .ctl{
+    height:clamp(44px,5.5vw,56px);
+    min-width:0;
+    border:0;
+    border-radius:999px;
+    background:transparent;
+    color:var(--ink);
+    font-family:var(--font);
+    font-size:clamp(15px,1.6vw,18px);
+    font-weight:600;
+    cursor:pointer;
+    touch-action:manipulation;
+    transition:background .12s,transform .08s;
+  }
+  .ctl:hover{background:#F1F0E4}
+  .ctl:active{transform:scale(.96)}
+  .ctl.minus{color:#8F8EA4}
+  .ctl.primary{
+    background:var(--ink);
+    color:#fff;
+    box-shadow:0 6px 14px rgba(34,33,92,.24);
+  }
+  .ctl.primary:hover{background:#191847}
+
+  .foot-hint{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    margin:14px 0 0;
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+  }
+  .foot-hint kbd{
+    font-family:var(--font);
+    font-size:9px;
+    font-weight:600;
+    padding:2px 5px;
+    border-radius:5px;
+    background:#F1F0E4;
+    border:1px solid var(--line);
+    color:#6B6A80;
+  }
+  .foot-hint .sep{color:#C6C4B4}
+
+  /* ── Admin gate ─────────────────────────────────── */
+  .gate{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(16px,4vw,32px);
+    overflow-y:auto;
+  }
+  .gate-card{
+    width:min(430px,100%);
+    margin:auto;
+    padding:clamp(26px,4vw,36px);
+    background:var(--shell);
+    border-radius:clamp(24px,3vw,32px);
+    box-shadow:0 30px 70px rgba(34,33,92,.16);
+  }
+  .gate-brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:22px;
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+  .brand-dot{
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--teal);
+    box-shadow:0 0 0 4px rgba(51,214,163,.16);
+    flex:none;
+  }
+  .gate-eyebrow{
+    display:inline-flex;
+    align-items:center;
+    height:26px;
+    padding:0 12px;
+    border-radius:999px;
+    background:var(--teal-soft);
+    color:var(--teal-deep);
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+  }
+  .gate-card h2{
+    margin:16px 0 6px;
+    font-size:clamp(24px,3vw,30px);
+    font-weight:700;
+    letter-spacing:-.03em;
+  }
+  .gate-sub{
+    margin:0 0 22px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--muted);
+  }
+  .gate-field{display:block;margin-bottom:12px}
+  .gate-field span{
+    display:block;
+    margin-bottom:6px;
+    font-size:10px;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:rgba(34,33,92,.5);
+  }
+  .gate-field input{
+    width:100%;
+    height:52px;
+    padding:0 16px;
+    border:1px solid transparent;
+    border-radius:16px;
+    background:#F3F2E7;
+    color:var(--ink);
+    font-family:var(--font);
+    font-size:16px;
+    font-weight:500;
+    outline:0;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  .gate-field input:focus{border-color:var(--teal);box-shadow:0 0 0 4px rgba(51,214,163,.2)}
+  .gate-error{margin:2px 0 12px;font-size:12px;font-weight:500;color:#B3261E}
+  .gate-btn{
+    width:100%;
+    height:54px;
+    margin-top:8px;
+    border:0;
+    border-radius:999px;
+    background:var(--ink);
+    color:#fff;
+    font-family:var(--font);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 12px 26px rgba(34,33,92,.26);
+    transition:background .12s, opacity .12s;
+  }
+  .gate-btn:hover{background:#191847}
+  .gate-btn:disabled{opacity:.6;cursor:default}
+  .gate-links{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-top:18px;
+  }
+  .gate-links a,.gate-reset{
+    padding:0;
+    border:0;
+    background:none;
+    font-family:var(--font);
+    font-size:12px;
+    font-weight:500;
+    color:var(--muted);
+    text-decoration:none;
+    cursor:pointer;
+  }
+  .gate-links a:hover,.gate-reset:hover{color:var(--ink)}
+  .gate-reset.is-armed{color:#B3261E;font-weight:600}
+
+  /* ── Viewer ─────────────────────────────────────── */
+  .is-viewer .app{max-width:1600px}
+  .is-viewer .arena{gap:clamp(16px,2vw,28px)}
+  .is-viewer .player-card{padding:clamp(22px,2.8vw,40px)}
+  .is-viewer .card-body{gap:clamp(14px,2vw,34px);padding:10px 0}
+  .is-viewer .avatar{
+    width:clamp(120px,15vw,260px);
+    cursor:default;
+    pointer-events:none;
+  }
+  .is-viewer .player-name{
+    font-size:clamp(24px,2.7vw,42px);
+    cursor:default;
+  }
+  .is-viewer .score{--base:clamp(90px,12vw,210px)}
+  .is-viewer .ghost{font-size:clamp(130px,17vw,260px);opacity:.12}
+  .is-viewer .controls,
+  .is-viewer .pen,
+  .is-viewer .foot-hint,
+  .is-viewer .cam{display:none !important}
+  .is-viewer .status-row{padding-top:8px;padding-bottom:22px}
+
+  .waiting{
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:24px;
+  }
+  .waiting-inner{max-width:420px}
+  .waiting-pulse{
+    display:block;
+    width:14px;height:14px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:var(--teal);
+    animation:pulseRing 2.2s ease-out infinite;
+  }
+  @keyframes pulseRing{
+    0%{box-shadow:0 0 0 0 rgba(51,214,163,.5)}
+    70%{box-shadow:0 0 0 20px rgba(51,214,163,0)}
+    100%{box-shadow:0 0 0 0 rgba(51,214,163,0)}
+  }
+  .waiting h2{
+    margin:0 0 8px;
+    font-size:clamp(26px,3vw,36px);
+    font-weight:700;
+    letter-spacing:-.03em;
+  }
+  .waiting p{
+    margin:0 0 22px;
+    font-size:14px;
+    line-height:1.5;
+    color:var(--muted);
+  }
+  .waiting-link{
+    display:inline-flex;
+    align-items:center;
+    height:44px;
+    padding:0 22px;
+    border-radius:999px;
+    background:#F0EFE3;
+    color:var(--ink);
+    font-size:12px;
+    font-weight:600;
+    text-decoration:none;
+    transition:background .12s;
+  }
+  .waiting-link:hover{background:#E6E4D4}
+
+  /* ── Dialog ─────────────────────────────────────── */
+  dialog{
+    border:0;
+    padding:0;
+    background:transparent;
+    margin:auto;
+  }
+  dialog::backdrop{background:rgba(24,23,60,.44)}
+  .sheet{
+    width:min(400px,calc(100vw - 36px));
+    padding:26px;
+    border-radius:28px;
+    background:var(--shell);
+    color:var(--ink);
+    box-shadow:0 30px 70px rgba(24,23,60,.26);
+  }
+  .dlg-eyebrow{
+    margin:0 0 8px;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal-deep);
+  }
+  .sheet h2{
+    margin:0 0 6px;
+    font-size:24px;
+    font-weight:700;
+    letter-spacing:-.02em;
+  }
+  .dlg-sub{
+    margin:0 0 20px;
+    font-size:13px;
+    line-height:1.5;
+    color:var(--muted);
+    max-width:36ch;
+  }
+  .final{
+    display:grid;
+    gap:0;
+    padding:4px 6px;
+    margin:0 0 22px;
+    border-radius:18px;
+    background:#F3F2E7;
+  }
+  .final-row{display:flex;align-items:center;gap:9px;min-width:0;padding:10px 12px}
+  .final-row + .final-row{border-top:1px solid #E5E3D4}
+  .final-name{
+    flex:1;
+    min-width:0;
+    font-size:13px;
+    font-weight:500;
+    color:var(--muted);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .final-row b{
+    font-size:24px;
+    font-weight:700;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    flex:none;
+  }
+  .final-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .final-dot.a{background:var(--teal)}
+  .final-dot.b{background:var(--blue)}
+  .dialog-actions{display:grid;grid-template-columns:1fr 1.2fr;gap:10px}
+  .btn-soft,.btn-solid{
+    height:50px;
+    border:0;
+    border-radius:999px;
+    font-family:var(--font);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .btn-soft{background:#F0EFE3;color:var(--ink)}
+  .btn-soft:hover{background:#E6E4D4}
+  .btn-solid{background:var(--ink);color:#fff;box-shadow:0 8px 18px rgba(34,33,92,.24)}
+  .btn-solid:hover{background:#191847}
+
+  /* ── Responsive ─────────────────────────────────── */
+  @media (max-width:820px){
+    .arena{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+    .card-body{padding:4px 0}
+    .avatar{width:clamp(100px,28vw,150px)}
+    .score{--base:clamp(62px,17vw,100px)}
+    .ghost{font-size:clamp(100px,25vw,150px)}
+    .player-name{font-size:clamp(18px,4.6vw,24px)}
+    .name-edit{font-size:clamp(18px,4.6vw,24px)}
+    .name-field{height:80px;border-radius:20px;padding:0 16px}
+    .name-field input{font-size:18px}
+    .is-viewer .avatar{width:clamp(90px,24vw,150px)}
+    .is-viewer .player-name{font-size:clamp(20px,5vw,30px)}
+    .is-viewer .score{--base:clamp(66px,16vw,110px)}
+  }
+  @media (max-width:640px){
+    body{padding:0}
+    .app{
+      height:100dvh;
+      max-width:none;
+      border-radius:0;
+      box-shadow:none;
+    }
+    .app-header{padding-top:max(14px,env(safe-area-inset-top))}
+    main{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+    .setup-title{font-size:clamp(27px,7.4vw,34px)}
+    .setup-sub{font-size:13px;margin-bottom:20px}
+    .duo-avatar{width:74px;height:74px}
+    .vs-badge{width:26px;height:26px;font-size:9px}
+    .start-btn{height:58px;font-size:15px;margin-top:16px}
+    .history{padding:14px 16px 4px}
+    .key-hint,.foot-hint{display:none}
+    .status-row{padding-bottom:14px}
+    .ghost{opacity:.28}
+  }
+  @media (hover:none){
+    .foot-hint{display:none}
+    .key-hint{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gateView" hidden>
+  <div class="gate-card">
+    <div class="gate-brand"><span class="brand-dot" aria-hidden="true"></span>Scoreboard</div>
+
+    <form id="loginPane" hidden>
+      <span class="gate-eyebrow">Admin</span>
+      <h2>Sign in to score</h2>
+      <p class="gate-sub">Only the admin controls the scoreboard. The viewer page stays open to the audience.</p>
+      <label class="gate-field">
+        <span>Username</span>
+        <input id="loginUser" type="text" autocomplete="username" spellcheck="false" required>
+      </label>
+      <label class="gate-field">
+        <span>Password</span>
+        <input id="loginPass" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="gate-error" id="loginError" role="alert" hidden></p>
+      <button class="gate-btn" type="submit">Sign in</button>
+      <div class="gate-links">
+        <a href="#view" target="_blank" rel="noopener">Viewer page</a>
+        <button class="gate-reset" id="resetAccount" type="button">Reset account</button>
+      </div>
+    </form>
+
+    <form id="setupPane" hidden>
+      <span class="gate-eyebrow">First run</span>
+      <h2>Create admin account</h2>
+      <p class="gate-sub">This account guards scoring on this device. Choose something you&rsquo;ll remember before the event.</p>
+      <label class="gate-field">
+        <span>Username</span>
+        <input id="newUser" type="text" autocomplete="username" spellcheck="false" required>
+      </label>
+      <label class="gate-field">
+        <span>Password</span>
+        <input id="newPass" type="password" autocomplete="new-password" required>
+      </label>
+      <label class="gate-field">
+        <span>Confirm password</span>
+        <input id="newPass2" type="password" autocomplete="new-password" required>
+      </label>
+      <p class="gate-error" id="setupError" role="alert" hidden></p>
+      <button class="gate-btn" type="submit">Create account</button>
+      <div class="gate-links">
+        <a href="#view" target="_blank" rel="noopener">Viewer page</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="app">
+  <header class="app-header">
+    <div class="header-slot start">
+      <button class="icon-btn" id="undoBtn" type="button" aria-label="Undo last point" title="Undo last point (Z)" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8v5h5"/>
+          <path d="M4.6 12.5a8 8 0 1 0 2.1-7.2"/>
+        </svg>
+      </button>
+    </div>
+    <h1 class="app-title">Scoreboard</h1>
+    <div class="header-slot end">
+      <button class="end-btn" id="endBtn" type="button" hidden>End</button>
+      <a class="icon-btn viewer-link" id="viewerBtn" href="#view" target="_blank" rel="noopener" aria-label="Open viewer" title="Open viewer in a new tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.5" y="4" width="19" height="13" rx="2.5"/>
+          <path d="M8.5 21h7"/>
+          <path d="M12 17v4"/>
+        </svg>
+      </a>
+      <button class="icon-btn" id="signOutBtn" type="button" aria-label="Sign out" title="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h6"/>
+          <path d="M16 8l4 4-4 4"/>
+          <path d="M9 12h11"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="status-row">
+    <div class="status-pill" id="statusPill">
+      <span class="status-dot"></span>
+      <span id="statusText">New session</span>
+    </div>
+  </div>
+
+  <main>
+    <section class="setup" id="setupView">
+      <div class="setup-inner">
+        <div class="duo">
+          <button class="duo-avatar duo-a" type="button" data-pick="0" aria-label="Add or change photo for player one">
+            <span class="avatar-shot" data-side="0" data-placeholder="01"></span>
+            <span class="cam" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3l1.5-2h7L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+            </span>
+          </button>
+          <div class="vs-badge">vs</div>
+          <button class="duo-avatar duo-b" type="button" data-pick="1" aria-label="Add or change photo for player two">
+            <span class="avatar-shot" data-side="1" data-placeholder="02"></span>
+            <span class="cam" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3l1.5-2h7L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+            </span>
+          </button>
+        </div>
+        <p class="duo-hint">Click a circle to add a photo</p>
+
+        <h2 class="setup-title">Who&rsquo;s competing?</h2>
+        <p class="setup-sub">Name both players to start the session.</p>
+
+        <div class="name-fields">
+          <label class="name-field field-a">
+            <span class="field-tag" aria-hidden="true">01</span>
+            <span class="field-text">
+              <span class="field-label" aria-hidden="true">Player 01</span>
+              <input id="inputA" type="text" maxlength="24" placeholder="Enter name" aria-label="Player one name" autocomplete="off" spellcheck="false" enterkeyhint="go">
+            </span>
+          </label>
+          <label class="name-field field-b">
+            <span class="field-tag" aria-hidden="true">02</span>
+            <span class="field-text">
+              <span class="field-label" aria-hidden="true">Player 02</span>
+              <input id="inputB" type="text" maxlength="24" placeholder="Enter name" aria-label="Player two name" autocomplete="off" spellcheck="false" enterkeyhint="go">
+            </span>
+          </label>
+        </div>
+
+        <button class="start-btn" id="startBtn" type="button">
+          <span>Start session</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14"/>
+            <path d="m13 6 6 6-6 6"/>
+          </svg>
+        </button>
+        <p class="key-hint">Press <kbd>Enter</kbd> to start</p>
+
+        <section class="history" id="past" hidden>
+          <div class="history-head">
+            <h3>Previous sessions</h3>
+            <span class="history-count" id="historyCount"></span>
+          </div>
+          <ul id="pastList"></ul>
+        </section>
+      </div>
+    </section>
+
+    <section class="waiting" id="waitingView" hidden>
+      <div class="waiting-inner">
+        <span class="waiting-pulse" aria-hidden="true"></span>
+        <h2>Waiting for a session</h2>
+        <p>Add the competitors and start scoring in the admin view.</p>
+        <a class="waiting-link" href="./index.html">Open admin view</a>
+      </div>
+    </section>
+
+    <section class="arena" id="arenaView" hidden>
+      <article class="player-card card-a" id="sideA" aria-label="Player one">
+        <span class="ghost" aria-hidden="true">01</span>
+        <div class="card-body">
+          <button class="avatar" type="button" data-pick="0" aria-label="Change photo for player one">
+            <span class="avatar-shot" data-side="0" data-placeholder="01"></span>
+            <span class="cam" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3l1.5-2h7L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+            </span>
+          </button>
+          <div class="info">
+            <div class="name-slot">
+              <button class="player-name" id="nameElA" type="button">
+                <span class="name-text" id="nameTextA"></span>
+                <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              <input class="name-edit" id="editA" type="text" maxlength="24" aria-label="Rename player one" hidden>
+            </div>
+            <p class="pts">Pts</p>
+            <div class="score" id="scoreA" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="ctl minus" type="button" data-side="0" data-delta="-1" aria-label="Subtract one point">&minus;1</button>
+          <button class="ctl primary" type="button" data-side="0" data-delta="1" aria-label="Add one point">+1</button>
+          <button class="ctl" type="button" data-side="0" data-delta="2" aria-label="Add two points">+2</button>
+          <button class="ctl" type="button" data-side="0" data-delta="3" aria-label="Add three points">+3</button>
+        </div>
+      </article>
+
+      <article class="player-card card-b" id="sideB" aria-label="Player two">
+        <span class="ghost" aria-hidden="true">02</span>
+        <div class="card-body">
+          <button class="avatar" type="button" data-pick="1" aria-label="Change photo for player two">
+            <span class="avatar-shot" data-side="1" data-placeholder="02"></span>
+            <span class="cam" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5h3l1.5-2h7L17 8.5h3a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+            </span>
+          </button>
+          <div class="info">
+            <div class="name-slot">
+              <button class="player-name" id="nameElB" type="button">
+                <span class="name-text" id="nameTextB"></span>
+                <svg class="pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              <input class="name-edit" id="editB" type="text" maxlength="24" aria-label="Rename player two" hidden>
+            </div>
+            <p class="pts">Pts</p>
+            <div class="score" id="scoreB" aria-live="polite"></div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="ctl minus" type="button" data-side="1" data-delta="-1" aria-label="Subtract one point">&minus;1</button>
+          <button class="ctl primary" type="button" data-side="1" data-delta="1" aria-label="Add one point">+1</button>
+          <button class="ctl" type="button" data-side="1" data-delta="2" aria-label="Add two points">+2</button>
+          <button class="ctl" type="button" data-side="1" data-delta="3" aria-label="Add three points">+3</button>
+        </div>
+      </article>
+    </section>
+
+    <p class="foot-hint" id="footHint" hidden>
+      <kbd>A</kbd><kbd>D</kbd> add a point
+      <span class="sep">&middot;</span>
+      <kbd>Z</kbd> undo
+      <span class="sep">&middot;</span>
+      click a name to rename
+    </p>
+  </main>
+</div>
+
+<dialog id="endDialog">
+  <div class="sheet">
+    <p class="dlg-eyebrow">End session</p>
+    <h2>Final score?</h2>
+    <p class="dlg-sub">The result will be saved to previous sessions and you&rsquo;ll return to setup.</p>
+    <div class="final">
+      <div class="final-row">
+        <span class="final-dot a" aria-hidden="true"></span>
+        <span class="final-name" id="dlgNameA"></span>
+        <b id="dlgScoreA"></b>
+      </div>
+      <div class="final-row">
+        <span class="final-dot b" aria-hidden="true"></span>
+        <span class="final-name" id="dlgNameB"></span>
+        <b id="dlgScoreB"></b>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="btn-soft" id="cancelEnd" type="button">Keep playing</button>
+      <button class="btn-solid" id="confirmEnd" type="button">End session</button>
+    </div>
+  </div>
+</dialog>
+
+<input id="fileA" type="file" accept="image/*" hidden>
+<input id="fileB" type="file" accept="image/*" hidden>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "scoreboard.v1";
+  var AUTH_KEY = "scoreboard.admin";
+  var SESSION_KEY = "scoreboard.session";
+  var SESSION_MS = 12 * 60 * 60 * 1000;
+  var mode = location.hash === "#view" ? "viewer" : "admin";
+
+  function defaults() {
+    return {
+      stage: "setup",
+      names: ["", ""],
+      images: [null, null],
+      scores: [0, 0],
+      history: [],
+      session: 0,
+      results: []
+    };
+  }
+
+  function normalize(saved) {
+    var s = defaults();
+    if (saved && typeof saved === "object") {
+      if (saved.stage === "live" || saved.stage === "setup") s.stage = saved.stage;
+      if (Array.isArray(saved.names) && saved.names.length === 2) s.names = saved.names.map(String);
+      if (Array.isArray(saved.images) && saved.images.length === 2) {
+        s.images = saved.images.map(function (v) { return typeof v === "string" && v ? v : null; });
+      }
+      if (Array.isArray(saved.scores) && saved.scores.length === 2) s.scores = saved.scores.map(Number);
+      if (Array.isArray(saved.history)) s.history = saved.history;
+      if (typeof saved.session === "number") s.session = saved.session;
+      if (Array.isArray(saved.results)) s.results = saved.results;
+    }
+    return s;
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return defaults();
+      return normalize(JSON.parse(raw));
+    } catch (e) {
+      return defaults();
+    }
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  /* Viewer mode mirrors the admin tab's saved state. */
+  var lastRaw = null;
+  function currentRaw() {
+    try { return localStorage.getItem(KEY); } catch (e) { return null; }
+  }
+  function syncViewer(force) {
+    if (mode !== "viewer") return;
+    var raw = currentRaw();
+    if (!force && raw === lastRaw) return;
+    lastRaw = raw;
+    try {
+      state = raw ? normalize(JSON.parse(raw)) : defaults();
+    } catch (e) {
+      return;
+    }
+    render();
+    requestWake();
+  }
+
+  function handlePhoto(side, file) {
+    if (!file || !/^image\//.test(file.type)) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var S = 480;
+        var min = Math.min(img.width, img.height);
+        var canvas = document.createElement("canvas");
+        canvas.width = S;
+        canvas.height = S;
+        var ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, S, S);
+        ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, S, S);
+        state.images[side] = canvas.toDataURL("image/jpeg", 0.84);
+        save();
+        render();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* Admin account — a device-local gate for the scoring controls. */
+  function b64(bytes) {
+    var s = "";
+    for (var i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s);
+  }
+  function unb64(str) {
+    var s = atob(str);
+    var a = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+    return a;
+  }
+  function getAuth() {
+    try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch (e) { return null; }
+  }
+  function getSession() {
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return null; }
+  }
+  function signedIn() {
+    var rec = getAuth();
+    var s = getSession();
+    return !!(rec && s && s.u === rec.u && s.until > Date.now());
+  }
+  async function derive(password, salt, iter) {
+    var key = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]
+    );
+    var bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", hash: "SHA-256", salt: salt, iterations: iter }, key, 256
+    );
+    return new Uint8Array(bits);
+  }
+  function sameBytes(a, b) {
+    if (a.length !== b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+    return diff === 0;
+  }
+  async function createAccount(u, p) {
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iter = 150000;
+    var hash = await derive(p, salt, iter);
+    localStorage.setItem(AUTH_KEY, JSON.stringify({
+      u: u,
+      salt: b64(salt),
+      hash: b64(hash),
+      iter: iter,
+      at: Date.now()
+    }));
+  }
+  async function checkPassword(u, p) {
+    var rec = getAuth();
+    if (!rec || String(rec.u).toLowerCase() !== u.toLowerCase()) return false;
+    var hash = await derive(p, unb64(rec.salt), rec.iter);
+    return sameBytes(hash, unb64(rec.hash));
+  }
+  function startAuthSession(u) {
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ u: u, until: Date.now() + SESSION_MS }));
+    } catch (e) {}
+  }
+  function setGateError(el, msg) {
+    el.textContent = msg || "";
+    el.hidden = !msg;
+  }
+
+  var resetArmed = false;
+  var resetTimer = null;
+  function disarmReset() {
+    resetArmed = false;
+    resetTimer = null;
+    resetAccount.textContent = "Reset account";
+    resetAccount.classList.remove("is-armed");
+  }
+  function showGate(pane) {
+    gateView.hidden = false;
+    appEl.hidden = true;
+    loginPane.hidden = pane !== "login";
+    setupPane.hidden = pane !== "setup";
+    setGateError(loginError, "");
+    setGateError(setupError, "");
+    loginPass.value = "";
+    loginBtn.disabled = false;
+    loginBtn.textContent = "Sign in";
+    setupBtn.disabled = false;
+    setupBtn.textContent = "Create account";
+    disarmReset();
+    setTimeout(function () {
+      var field = pane === "login" ? loginUser : newUser;
+      try { field.focus(); } catch (e) {}
+    }, 40);
+  }
+  function showApp() {
+    gateView.hidden = true;
+    appEl.hidden = false;
+    render();
+  }
+  function bootAuth() {
+    if (mode === "viewer") {
+      gateView.hidden = true;
+      appEl.hidden = false;
+      return;
+    }
+    var rec = getAuth();
+    if (!rec) {
+      showGate("setup");
+    } else if (signedIn()) {
+      gateView.hidden = true;
+      appEl.hidden = false;
+    } else {
+      showGate("login");
+      loginUser.value = rec.u;
+    }
+  }
+
+  var state = load();
+  var renaming = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var setupView = $("setupView");
+  var arenaView = $("arenaView");
+  var waitingView = $("waitingView");
+  var footHint = $("footHint");
+  var undoBtn = $("undoBtn");
+  var endBtn = $("endBtn");
+  var viewerBtn = $("viewerBtn");
+  var statusPill = $("statusPill");
+  var statusText = $("statusText");
+  var startBtn = $("startBtn");
+  var inputA = $("inputA");
+  var inputB = $("inputB");
+  var fileA = $("fileA");
+  var fileB = $("fileB");
+  var gateView = $("gateView");
+  var appEl = document.querySelector(".app");
+  var loginPane = $("loginPane");
+  var setupPane = $("setupPane");
+  var loginUser = $("loginUser");
+  var loginPass = $("loginPass");
+  var loginError = $("loginError");
+  var loginBtn = loginPane.querySelector("button[type=submit]");
+  var newUser = $("newUser");
+  var newPass = $("newPass");
+  var newPass2 = $("newPass2");
+  var setupError = $("setupError");
+  var setupBtn = setupPane.querySelector("button[type=submit]");
+  var signOutBtn = $("signOutBtn");
+  var resetAccount = $("resetAccount");
+  var nameElA = $("nameElA");
+  var nameElB = $("nameElB");
+  var nameTextA = $("nameTextA");
+  var nameTextB = $("nameTextB");
+  var editA = $("editA");
+  var editB = $("editB");
+  var scoreA = $("scoreA");
+  var scoreB = $("scoreB");
+  var sideA = $("sideA");
+  var sideB = $("sideB");
+  var sideScores = [scoreA, scoreB];
+  var past = $("past");
+  var pastList = $("pastList");
+  var historyCount = $("historyCount");
+  var endDialog = $("endDialog");
+  var dlgNameA = $("dlgNameA");
+  var dlgNameB = $("dlgNameB");
+  var dlgScoreA = $("dlgScoreA");
+  var dlgScoreB = $("dlgScoreB");
+
+  var pad2 = function (n) { return String(n).padStart(2, "0"); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+  var nameOf = function (i) {
+    return state.names[i] || (i === 0 ? "Player 1" : "Player 2");
+  };
+
+  function setScore(el, value, name) {
+    el.textContent = String(value);
+    var len = String(value).length;
+    var fit = len <= 2 ? 1 : len === 3 ? 0.82 : len === 4 ? 0.66 : 0.55;
+    el.style.setProperty("--fit", fit);
+    el.setAttribute("aria-label", name + " score: " + value);
+  }
+
+  function pop(el) {
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
+  }
+
+  function renderControls() {
+    [
+      { side: 0, el: sideA, name: nameOf(0) },
+      { side: 1, el: sideB, name: nameOf(1) }
+    ].forEach(function (s) {
+      var controls = s.el.querySelectorAll(".ctl");
+      controls.forEach(function (btn) {
+        var delta = Number(btn.dataset.delta);
+        var word = delta === -1 ? "Subtract one point"
+          : delta === 1 ? "Add one point"
+          : delta === 2 ? "Add two points"
+          : "Add three points";
+        btn.setAttribute("aria-label", word + " for " + s.name);
+      });
+    });
+  }
+
+  function initialsOf(i) {
+    var parts = (state.names[i] || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return i === 0 ? "01" : "02";
+    return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+  }
+
+  function renderShots() {
+    document.querySelectorAll(".avatar-shot").forEach(function (shot) {
+      var i = Number(shot.dataset.side);
+      var init = shot.querySelector(".initials");
+      var img = shot.querySelector("img");
+      if (!init) {
+        init = document.createElement("span");
+        init.className = "initials";
+        shot.appendChild(init);
+      }
+      if (!img) {
+        img = document.createElement("img");
+        img.alt = "";
+        shot.appendChild(img);
+      }
+      var src = state.images[i];
+      if (src) {
+        if (img.getAttribute("src") !== src) img.src = src;
+        img.hidden = false;
+        init.hidden = true;
+      } else {
+        img.hidden = true;
+        img.removeAttribute("src");
+        init.hidden = false;
+        init.textContent = initialsOf(i);
+      }
+    });
+
+    document.querySelectorAll("[data-pick]").forEach(function (btn) {
+      var i = Number(btn.dataset.pick);
+      btn.disabled = mode === "viewer";
+      btn.setAttribute("aria-label",
+        (state.images[i] ? "Change" : "Add") + " photo for " + nameOf(i));
+    });
+  }
+
+  function render() {
+    var live = state.stage === "live";
+    var viewer = mode === "viewer";
+
+    document.body.classList.toggle("is-viewer", viewer);
+
+    setupView.hidden = live || viewer;
+    waitingView.hidden = !viewer || live;
+    arenaView.hidden = !live;
+    footHint.hidden = !live || viewer;
+    undoBtn.hidden = !live || viewer;
+    endBtn.hidden = !live || viewer;
+    viewerBtn.hidden = viewer;
+    signOutBtn.hidden = viewer;
+
+    undoBtn.disabled = state.history.length === 0;
+    statusPill.classList.toggle("is-live", live);
+    statusText.textContent = live ? "LIVE · SESSION " + pad2(state.session) : (viewer ? "WAITING" : "NEW SESSION");
+
+    renderShots();
+
+    if (live) {
+      var n0 = nameOf(0);
+      var n1 = nameOf(1);
+
+      if (renaming === null) {
+        nameTextA.textContent = n0;
+        nameTextB.textContent = n1;
+        nameElA.title = viewer ? "" : n0 + " — click to rename";
+        nameElB.title = viewer ? "" : n1 + " — click to rename";
+        nameElA.tabIndex = viewer ? -1 : 0;
+        nameElB.tabIndex = viewer ? -1 : 0;
+        sideA.setAttribute("aria-label", "Player one: " + n0);
+        sideB.setAttribute("aria-label", "Player two: " + n1);
+      }
+
+      setScore(scoreA, state.scores[0], n0);
+      setScore(scoreB, state.scores[1], n1);
+      renderControls();
+      document.title = state.scores[0] + " — " + state.scores[1] + " · " + n0 + " vs " + n1;
+    } else {
+      inputA.value = state.names[0] || "";
+      inputB.value = state.names[1] || "";
+      renderPast();
+      document.title = viewer ? "Scoreboard — waiting" : "Scoreboard";
+    }
+  }
+
+  function renderPast() {
+    past.hidden = state.results.length === 0;
+    historyCount.textContent = state.results.length ? state.results.length + " saved" : "";
+    if (!state.results.length) {
+      pastList.innerHTML = "";
+      return;
+    }
+    pastList.innerHTML = state.results.map(function (r) {
+      var date = new Date(r.at).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      var aWin = r.sa > r.sb;
+      var bWin = r.sb > r.sa;
+      var aCls = aWin ? "win" : (bWin ? "lose" : "");
+      var bCls = bWin ? "win" : (aWin ? "lose" : "");
+      return "<li>" +
+        '<span class="h-no">S' + pad2(r.n || 0) + "</span>" +
+        '<span class="h-line"><span class="' + aCls + '">' + esc(r.a) + "</span> " +
+        '<b class="' + aCls + '">' + Number(r.sa) + "</b> " +
+        '<span class="dash">—</span> ' +
+        '<b class="' + bCls + '">' + Number(r.sb) + "</b> " +
+        '<span class="' + bCls + '">' + esc(r.b) + "</span></span>" +
+        '<span class="h-date">' + esc(date) + "</span>" +
+        "</li>";
+    }).join("");
+  }
+
+  function startRename(side) {
+    if (mode !== "admin" || state.stage !== "live" || renaming !== null) return;
+    renaming = side;
+    var btn = side === 0 ? nameElA : nameElB;
+    var input = side === 0 ? editA : editB;
+    input.value = state.names[side] || "";
+    btn.hidden = true;
+    input.hidden = false;
+    input.focus();
+    input.select();
+
+    var cancelled = false;
+    input.onkeydown = function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        input.blur();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        cancelled = true;
+        input.blur();
+      }
+    };
+    input.onblur = function () {
+      input.onkeydown = null;
+      input.onblur = null;
+      if (!cancelled) {
+        var v = input.value.trim();
+        state.names[side] = v || (side === 0 ? "Player 1" : "Player 2");
+        save();
+      }
+      input.hidden = true;
+      btn.hidden = false;
+      renaming = null;
+      render();
+    };
+  }
+
+  function addPoint(side, delta) {
+    if (mode !== "admin" || state.stage !== "live") return;
+    state.scores[side] += delta;
+    state.history.push({ side: side, delta: delta });
+    save();
+    render();
+    pop(sideScores[side]);
+    requestWake();
+  }
+
+  function undo() {
+    if (mode !== "admin" || state.stage !== "live" || !state.history.length) return;
+    var ev = state.history.pop();
+    state.scores[ev.side] -= ev.delta;
+    save();
+    render();
+    pop(sideScores[ev.side]);
+  }
+
+  function startSession() {
+    if (mode !== "admin") return;
+    var a = inputA.value.trim() || "Player 1";
+    var b = inputB.value.trim() || "Player 2";
+    state.names = [a, b];
+    state.scores = [0, 0];
+    state.history = [];
+    state.stage = "live";
+    state.session = (state.session || 0) + 1;
+    renaming = null;
+    save();
+    render();
+    requestWake();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  }
+
+  function endSession() {
+    state.results.unshift({
+      n: state.session,
+      a: nameOf(0),
+      b: nameOf(1),
+      sa: state.scores[0],
+      sb: state.scores[1],
+      at: Date.now()
+    });
+    state.results = state.results.slice(0, 7);
+    state.stage = "setup";
+    state.scores = [0, 0];
+    state.history = [];
+    save();
+    render();
+    cancelWake();
+  }
+
+  /* Keep the screen awake during a live session. */
+  var wakeLock = null;
+  function requestWake() {
+    if (state.stage !== "live") return;
+    if (!("wakeLock" in navigator)) return;
+    if (document.visibilityState !== "visible") return;
+    if (wakeLock) return;
+    try {
+      navigator.wakeLock.request("screen").then(function (lock) {
+        wakeLock = lock;
+        lock.addEventListener("release", function () {
+          if (wakeLock === lock) wakeLock = null;
+        });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  function cancelWake() {
+    if (wakeLock) {
+      wakeLock.release().catch(function () {});
+      wakeLock = null;
+    }
+  }
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") requestWake();
+  });
+
+  /* Events */
+  document.addEventListener("click", function (e) {
+    var ctl = e.target.closest(".ctl");
+    if (ctl) {
+      addPoint(Number(ctl.dataset.side), Number(ctl.dataset.delta));
+      return;
+    }
+    var pick = e.target.closest("[data-pick]");
+    if (pick && mode === "admin") {
+      (Number(pick.dataset.pick) === 0 ? fileA : fileB).click();
+    }
+  });
+
+  fileA.addEventListener("change", function () {
+    handlePhoto(0, this.files[0]);
+    this.value = "";
+  });
+  fileB.addEventListener("change", function () {
+    handlePhoto(1, this.files[0]);
+    this.value = "";
+  });
+
+  nameElA.addEventListener("click", function () { startRename(0); });
+  nameElB.addEventListener("click", function () { startRename(1); });
+  undoBtn.addEventListener("click", undo);
+  startBtn.addEventListener("click", startSession);
+
+  [inputA, inputB].forEach(function (inp) {
+    inp.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        startSession();
+      }
+    });
+  });
+
+  [inputA, inputB].forEach(function (inp, i) {
+    inp.addEventListener("input", function () {
+      state.names[i] = inp.value;
+      save();
+    });
+  });
+
+  endBtn.addEventListener("click", function () {
+    if (state.stage !== "live") return;
+    dlgNameA.textContent = nameOf(0);
+    dlgNameB.textContent = nameOf(1);
+    dlgScoreA.textContent = state.scores[0];
+    dlgScoreB.textContent = state.scores[1];
+    endDialog.showModal();
+  });
+  $("cancelEnd").addEventListener("click", function () { endDialog.close(); });
+  $("confirmEnd").addEventListener("click", function () {
+    endDialog.close();
+    endSession();
+  });
+
+  /* Admin gate */
+  setupPane.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var u = newUser.value.trim();
+    var p = newPass.value;
+    var p2 = newPass2.value;
+    if (u.length < 3) {
+      setGateError(setupError, "Username needs at least 3 characters.");
+      newUser.focus();
+      return;
+    }
+    if (p.length < 8) {
+      setGateError(setupError, "Password needs at least 8 characters.");
+      newPass.focus();
+      return;
+    }
+    if (p !== p2) {
+      setGateError(setupError, "Passwords don't match.");
+      newPass2.focus();
+      return;
+    }
+    setGateError(setupError, "");
+    setupBtn.disabled = true;
+    setupBtn.textContent = "Creating account…";
+    try {
+      await createAccount(u, p);
+      startAuthSession(u);
+      setupPane.reset();
+      showApp();
+    } catch (err) {
+      setGateError(setupError, "Couldn't save the account in this browser. Check storage access and try again.");
+      setupBtn.disabled = false;
+      setupBtn.textContent = "Create account";
+    }
+  });
+
+  loginPane.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var u = loginUser.value.trim();
+    var p = loginPass.value;
+    if (!u || !p) return;
+    setGateError(loginError, "");
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Checking…";
+    try {
+      var ok = await checkPassword(u, p);
+      if (ok) {
+        startAuthSession(getAuth().u);
+        loginPane.reset();
+        showApp();
+      } else {
+        setGateError(loginError, "Wrong username or password.");
+        loginPass.value = "";
+        loginPass.focus();
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Sign in";
+      }
+    } catch (err) {
+      setGateError(loginError, "Sign-in failed in this browser. Reload and try again.");
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Sign in";
+    }
+  });
+
+  signOutBtn.addEventListener("click", function () {
+    try { localStorage.removeItem(SESSION_KEY); } catch (e) {}
+    var rec = getAuth();
+    showGate("login");
+    if (rec) loginUser.value = rec.u;
+  });
+
+  resetAccount.addEventListener("click", function () {
+    if (!resetArmed) {
+      resetArmed = true;
+      resetAccount.classList.add("is-armed");
+      resetAccount.textContent = "Tap again to erase";
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(disarmReset, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    try {
+      localStorage.removeItem(AUTH_KEY);
+      localStorage.removeItem(SESSION_KEY);
+    } catch (e) {}
+    loginUser.value = "";
+    newUser.value = "";
+    showGate("setup");
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (mode !== "admin") return;
+    if (!gateView.hidden) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var tag = document.activeElement ? document.activeElement.tagName : "";
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    if (endDialog.open) return;
+    if (state.stage !== "live") return;
+    var k = e.key.toLowerCase();
+    if (k === "a") {
+      e.preventDefault();
+      addPoint(0, 1);
+    } else if (k === "d") {
+      e.preventDefault();
+      addPoint(1, 1);
+    } else if (k === "z") {
+      e.preventDefault();
+      undo();
+    }
+  });
+
+  if (mode === "viewer") {
+    lastRaw = currentRaw();
+    window.addEventListener("storage", function (e) {
+      if (e.key === KEY) syncViewer();
+    });
+    setInterval(function () { syncViewer(); }, 500);
+  } else {
+    window.addEventListener("storage", function (e) {
+      if (e.key === KEY && renaming === null) {
+        state = load();
+        render();
+      }
+    });
+  }
+
+  window.addEventListener("hashchange", function () { location.reload(); });
+
+  render();
+  requestWake();
+  bootAuth();
+})();
+</script>
+</body>
+</html>

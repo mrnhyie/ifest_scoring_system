@@ -1,0 +1,26 @@
+{
+  "name": "scoreboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test:e2e": "node test/e2e.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.13",
+    "next": "^16.4.3",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "puppeteer-core": "^25.16.0",
+    "typescript": "^7.0.2"
+  }
+}
