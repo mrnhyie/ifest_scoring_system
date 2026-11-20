@@ -20,12 +20,9 @@ export default function Gate({ mode, onSubmit }: Props) {
     if (busy) return;
     setError("");
 
-    if (!password) {
-      setError("Please enter the password key.");
-      return;
-    }
+    if (!password) return;
     if (setup && password.length < 6) {
-      setError("Password key needs at least 6 characters.");
+      setError("Password needs at least 6 characters.");
       return;
     }
     if (setup && password !== confirm) {
@@ -37,7 +34,7 @@ export default function Gate({ mode, onSubmit }: Props) {
     try {
       await onSubmit(password);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid password. Try again.");
+      setError(err instanceof Error ? err.message : "Wrong password.");
       setBusy(false);
       if (!setup) {
         setPassword("");
@@ -47,38 +44,33 @@ export default function Gate({ mode, onSubmit }: Props) {
   }
 
   const buttonLabel = busy
-    ? setup
-      ? "Saving key…"
-      : "Authenticating…"
-    : setup
-      ? "Save Access Key"
-      : "Unlock Scoreboard";
+    ? (setup ? "Setting password…" : "Signing in…")
+    : (setup ? "Set admin password" : "Sign in");
 
   return (
     <div className="gate" id="gateView">
       <div className="gate-card">
         <div className="gate-brand">
           <span className="brand-dot" aria-hidden="true" />
-          <span>Scoreboard</span>
+          Scoreboard
         </div>
 
         <form id={setup ? "setupPane" : "loginPane"} onSubmit={submit} noValidate>
-          <span className="gate-eyebrow">{setup ? "First run setup" : "Admin access"}</span>
-          <h2>{setup ? "Set Admin Key" : "Enter Admin Key"}</h2>
+          <span className="gate-eyebrow">{setup ? "First run" : "Admin"}</span>
+          <h2>{setup ? "Set admin password" : "Sign in to score"}</h2>
           <p className="gate-sub">
             {setup
-              ? "Set a password string to secure scoring controls. You can also set ADMIN_PASSWORD in environment variables."
-              : "Enter the admin password key to unlock scoreboard controls."}
+              ? "Set a password to guard scoring. You can also configure ADMIN_PASSWORD in environment variables."
+              : "Only the admin controls the scoreboard. The viewer page stays open to the audience."}
           </p>
 
           <label className="gate-field">
-            <span>{setup ? "Password Key" : "Admin Password"}</span>
+            <span>Password</span>
             <input
               id={setup ? "newPass" : "loginPass"}
               ref={passwordRef}
               type="password"
               autoComplete={setup ? "new-password" : "current-password"}
-              placeholder="••••••••••••"
               autoFocus
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -86,12 +78,11 @@ export default function Gate({ mode, onSubmit }: Props) {
           </label>
           {setup && (
             <label className="gate-field">
-              <span>Confirm Password Key</span>
+              <span>Confirm password</span>
               <input
                 id="newPass2"
                 type="password"
                 autoComplete="new-password"
-                placeholder="••••••••••••"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
               />
@@ -107,7 +98,7 @@ export default function Gate({ mode, onSubmit }: Props) {
           </button>
           <div className="gate-links">
             <a href="/view" target="_blank" rel="noopener">
-              Open Public Viewer &rarr;
+              Viewer page
             </a>
           </div>
         </form>

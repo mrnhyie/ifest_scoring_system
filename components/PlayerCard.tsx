@@ -58,6 +58,9 @@ export default function PlayerCard({
       className={`player-card card-${side === 0 ? "a" : "b"}`}
       aria-label={`Player ${who}: ${name}`}
     >
+      <span className="ghost" aria-hidden="true">
+        {side === 0 ? "01" : "02"}
+      </span>
       <div className="card-body">
         <Avatar
           side={side}
